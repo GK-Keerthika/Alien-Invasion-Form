@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alien Invasion — Arrival Manifest</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#030417;--card:rgba(255,255,255,0.03);--glass:rgba(255,255,255,0.04);--accent:#f6c2f3;--muted:rgba(255,255,255,0.72);--radius:12px}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;font-family:Inter, system-ui, -apple-system, 'Orbitron', sans-serif;color:#eef2f7;background:#000;display:flex;align-items:center;justify-content:center}
+
+    /* Background: blurred space image */
+    .bg{position:fixed;inset:0;background-image:url('https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=1b9f0ba7d7a1b1f9d6f4f0b2b3d6f6d1');background-size:cover;background-position:center;filter:blur(0px) brightness(0.42);z-index:0}
+
+    .wrap{position:relative;z-index:2;padding:20px;width:100%;max-width:920px}
+    .card{background:linear-gradient(180deg,var(--card),transparent);backdrop-filter:blur(3px);border-radius:var(--radius);padding:18px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 12px 40px rgb(255, 197, 241)}
+
+    h1{margin:0;font-family:'Orbitron',sans-serif;font-size:20px}
+    p.lead{color:var(--muted);margin:6px 0 14px}
+
+    form{display:grid;grid-template-columns:1fr 320px;gap:18px}
+    .left{display:flex;flex-direction:column;gap:12px}
+    label{font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type=text], input[type=email], input[type=tel], textarea, select{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff}
+    textarea{min-height:100px}
+
+    /* select and contact input styling: transparent background, visible text */
+    select{background:transparent;color:#9c9999;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);-webkit-appearance:none;appearance:none}
+
+    /* make inputs glow a little on focus */
+    input:focus, textarea:focus, select:focus{outline:none;border-color:var(--accent);box-shadow:0 8px 30px rgba(125,249,255,0.12)}
+    input::placeholder, textarea::placeholder{color:rgba(255,255,255,0.6)}
+
+    .right{padding:12px;border-radius:10px;background:var(--glass);display:flex;flex-direction:column;gap:50px}
+    /* increased photo preview height as requested */
+    .photo-preview{height:420px;border-radius:8px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--muted);font-size:13px}
+    .photo-preview img{max-width:100%;max-height:100%;object-fit:contain}
+
+    .row{display:flex;gap:10px}
+    .col{flex:1}
+    .btn{padding:12px 16px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),#a27bff);color:#021;font-weight:700;cursor:pointer}
+    .note{font-size:13px;color:var(--muted)}
+
+    .hidden{display:none}
+
+    /* success banner styles */
+    .success-banner{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-8px);background:#b0f6ff;color:#04220b;padding:12px 18px;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.35);opacity:0;pointer-events:none;transition:opacity 0.35s ease, transform 0.35s ease}
+    .success-banner.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+
+    @media (max-width:900px){form{grid-template-columns:1fr} /* note: image stays on right (no order change) */ }
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="card" role="main">
+      <h1>Alien Arrival — Manifest</h1>
+      <p class="lead">Provide origin, mission purpose, ship ID and a photo. Simple, clear, and ready for reporting.</p>
+
+      <form id="form" novalidate autocomplete="off">
+        <div class="left">
+          <div>
+            <label for="fullname">Full name</label>
+            <input id="fullname" name="fullname" type="text" placeholder="Commander Zex" required />
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <label for="contactType">Preferred contact</label>
+              <select id="contactType" name="contactType">
+                <option value="">— choose contact —</option>
+                <option value="phone">Phone</option>
+                <option value="email">Mail</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div style="width:140px">
+              <label for="contactValue">Contact</label>
+              <input id="contactValue" name="contactValue" type="text" placeholder="Select contact type" />
+            </div>
+          </div>
+
+          <div>
+            <label for="planet">Planet of origin</label>
+            <select id="planet" name="planet" required>
+              <option value="">— choose planet —</option>
+              <option>Kepler-186f</option>
+              <option>TRAPPIST-1e</option>
+              <option>Proxima b</option>
+              <option>Gliese 667 Cc</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div id="otherPlanetField" class="hidden">
+            <label for="otherPlanet">Specify planet</label>
+            <input id="otherPlanet" name="otherPlanet" type="text" placeholder="Name of planet" />
+          </div>
+
+          <div>
+            <label for="region">Region / City (if known)</label>
+            <input id="region" name="region" type="text" placeholder="Sector 7G, Southern Belt" />
+          </div>
+
+          <div>
+            <label for="purpose">Purpose of visit</label>
+            <select id="purpose" name="purpose" required>
+              <option value="">— select purpose —</option>
+              <option>Exploration</option>
+              <option>Diplomacy</option>
+              <option>Trade</option>
+              <option>Scientific Research</option>
+              <option>Resource Collection</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div id="otherPurposeMsg" class="hidden note">Please describe your purpose in the message field below.</div>
+
+          <div>
+            <label for="intent">Short statement (optional)</label>
+            <textarea id="intent" name="intent" placeholder="We come to study your oceans..."></textarea>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <label for="ship">Ship name / Class</label>
+              <input id="ship" name="ship" type="text" placeholder="Mothership IX" />
+            </div>
+            <div style="width:140px">
+              <label for="reg">Ship registry ID</label>
+              <input id="reg" name="reg" type="text" placeholder="RX-771" required />
+            </div>
+          </div>
+
+          <div>
+            <label for="crew">Crew size</label>
+            <input id="crew" name="crew" type="text" inputmode="numeric" placeholder="12" />
+          </div>
+
+          <div>
+            <button class="btn" type="submit">Send Manifest</button>
+          </div>
+
+          <div id="status" class="note" aria-live="polite"></div>
+        </div>
+
+        <div class="right">
+          <div class="photo-preview" id="preview">No photo uploaded</div>
+          <div>
+            <label for="photo">Upload identity / ship image</label>
+            <input id="photo" name="photo" type="file" accept="image/*" required />
+          </div>
+
+        </div>
+      </form>
+      <div id="successBanner" class="success-banner" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('form');
+    const preview = document.getElementById('preview');
+    const photo = document.getElementById('photo');
+    const status = document.getElementById('status');
+    const purpose = document.getElementById('purpose');
+    const otherPurposeMsg = document.getElementById('otherPurposeMsg');
+    const planet = document.getElementById('planet');
+    const otherPlanetField = document.getElementById('otherPlanetField');
+    const contactType = document.getElementById('contactType');
+    const contactValue = document.getElementById('contactValue');
+    const successBanner = document.getElementById('successBanner');
+
+    // contact type handling — alienified placeholders
+    contactType.addEventListener('change', ()=>{
+      const val = contactType.value;
+      contactValue.required = val !== '';
+      if(val === 'phone'){
+        contactValue.type = 'tel';
+        contactValue.placeholder = '+ALIEN-0000';
+      } else if(val === 'email'){
+        contactValue.type = 'email';
+        contactValue.placeholder = 'commander@alienism.space';
+      } else if(val === 'other'){
+        contactValue.type = 'text';
+        contactValue.placeholder = 'provide cosmic contact';
+      } else {
+        contactValue.type = 'text';
+        contactValue.placeholder = 'Select contact type';
+      }
+    });
+
+    // show/hide "Other" inputs or messages
+    purpose.addEventListener('change', ()=>{
+      if(purpose.value === 'Other'){
+        otherPurposeMsg.classList.remove('hidden');
+      } else {
+        otherPurposeMsg.classList.add('hidden');
+      }
+    });
+
+    planet.addEventListener('change', ()=>{
+      if(planet.value === 'Other'){
+        otherPlanetField.classList.remove('hidden');
+        document.getElementById('otherPlanet').required = true;
+      } else {
+        otherPlanetField.classList.add('hidden');
+        document.getElementById('otherPlanet').required = false;
+      }
+    });
+
+    // image preview
+    photo.addEventListener('change', (e)=>{
+      const file = e.target.files[0];
+      if(!file) { preview.textContent = 'No photo uploaded'; return; }
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        preview.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = reader.result;
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // validation helpers
+    function isValidEmail(v){
+      // basic email pattern (keeps it simple but effective)
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    }
+    function isValidPhone(v){
+      // allow alien prefixes but require at least 4 visible chars; allow +, digits, letters, -, space
+      return /^[\+\w][\w\-\s]{3,}$/.test(v);
+    }
+    function isPositiveInteger(v){
+      return /^\d+$/.test(v) && parseInt(v,10) > 0;
+    }
+
+    // enhanced validation
+    function validate(fd){
+      if(!fd.get('fullname') || !fd.get('fullname').trim()) return 'Full name required.';
+      if(!fd.get('contactType')) return 'Please choose a contact method.';
+      if(contactType.value !== ''){
+        const cv = (fd.get('contactValue') || '').trim();
+        if(!cv) return 'Please provide the contact detail.';
+        if(contactType.value === 'email' && !isValidEmail(cv)) return 'Please provide a valid email (e.g. commander@alienism.space).';
+        if(contactType.value === 'phone' && !isValidPhone(cv)) return 'Please provide a valid contact (e.g. +ALIEN-0000 or +123456).';
+      }
+      if(!fd.get('planet')) return 'Planet of origin required.';
+      if(planet.value === 'Other' && (!fd.get('otherPlanet') || !fd.get('otherPlanet').trim())) return 'Please specify planet.';
+      if(!fd.get('purpose')) return 'Purpose required.';
+      if(purpose.value === 'Other' && (!fd.get('intent') || !fd.get('intent').trim())) return 'Please describe your purpose in the message.';
+      if(!fd.get('reg') || !fd.get('reg').trim()) return 'Ship registry ID required.';
+
+      // photo must be uploaded
+      if(!photo || !photo.files || photo.files.length === 0) return 'Please upload a photo of the ship/identity.';
+
+      // crew must be positive integer if provided
+      const crewVal = (fd.get('crew') || '').trim();
+      if(crewVal && !isPositiveInteger(crewVal)) return 'Crew size must be a positive whole number.';
+
+      return '';
+    }
+
+    // show a green banner for success and fade after 3s
+    function showSuccessBanner(text){
+      successBanner.textContent = text;
+      successBanner.classList.add('show');
+      successBanner.setAttribute('aria-hidden', 'false');
+      setTimeout(()=>{
+        successBanner.classList.remove('show');
+        successBanner.setAttribute('aria-hidden', 'true');
+      }, 3000);
+    }
+
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault(); status.textContent='';
+      const fd = new FormData(form);
+      const err = validate(fd);
+      if(err){ status.textContent = err; return; }
+
+      const payload = Object.fromEntries(fd.entries());
+      console.log('Manifest →', payload);
+
+      // show transmitting then success banner
+      status.textContent = 'Transmitting manifest...';
+      setTimeout(()=>{
+        const name = payload.fullname || 'Traveler';
+        // show green banner
+        showSuccessBanner(`Successfully registered, ${name}. Thank you.`);
+        // reset form and UI
+        form.reset(); preview.textContent = 'No photo uploaded';
+        otherPurposeMsg.classList.add('hidden'); otherPlanetField.classList.add('hidden');
+        document.getElementById('fullname').focus();
+      },700);
+    });
+  </script>
+</body>
+</html>
