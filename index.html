@@ -22,7 +22,9 @@
     form{display:grid;grid-template-columns:1fr 320px;gap:18px}
     .left{display:flex;flex-direction:column;gap:12px}
     label{font-size:13px;color:var(--muted);margin-bottom:6px}
-    input[type=text], input[type=email], input[type=tel], textarea, select{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff}
+    input[type=text], input[type=email], input[type=tel], textarea, select, input[type=date], input[type=number]{
+      width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff
+    }
     textarea{min-height:100px}
 
     /* select and contact input styling: transparent background, visible text */
@@ -34,8 +36,8 @@
 
     .right{padding:12px;border-radius:10px;background:var(--glass);display:flex;flex-direction:column;gap:50px}
     /* increased photo preview height as requested */
-    .photo-preview{height:420px;border-radius:8px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--muted);font-size:13px}
-    .photo-preview img{max-width:100%;max-height:100%;object-fit:contain}
+    .photo-preview{height:520px;border-radius:8px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--muted);font-size:13px}
+    .photo-preview img{width:100%;height:100%;object-fit:cover;border-radius:8px}
 
     .row{display:flex;gap:10px}
     .col{flex:1}
@@ -96,6 +98,46 @@
           <div id="otherPlanetField" class="hidden">
             <label for="otherPlanet">Specify planet</label>
             <input id="otherPlanet" name="otherPlanet" type="text" placeholder="Name of planet" />
+          </div>
+
+          <!-- === ADDED FIELD: Planet Name (must contain at least one vowel and one digit) === -->
+          <div>
+            <label for="planetNameComplex">Planet name (must include at least one vowel and one digit)</label>
+            <input id="planetNameComplex" name="planetNameComplex" type="text" placeholder="Elysium7" />
+            <div class="note">Example: <code>Elysium7</code> — contains vowels + digit.</div>
+          </div>
+
+          <!-- === ADDED FIELD: Antenna Count (even numbers only) === -->
+          <div>
+            <label for="antennaCount">Antenna count (even numbers only)</label>
+            <input id="antennaCount" name="antennaCount" type="text" inputmode="numeric" placeholder="4" />
+          </div>
+
+          <!-- === ADDED FIELD: Alien ID === -->
+          <div>
+            <label for="alienId">Alien ID (format: ZOR-XY_9999@UFO)</label>
+            <input id="alienId" name="alienId" type="text" placeholder="ZOR-AB_1234@UFO" />
+            <div class="note">Strict format: 3 uppercase letters, dash, 2 uppercase letters, underscore, 4 digits, "@UFO".</div>
+          </div>
+
+          <!-- === ADDED FIELD: Favorite Human Phrase (must include emoji or punctuation) === -->
+          <div>
+            <label for="favPhrase">Favorite human phrase (must include an emoji or punctuation)</label>
+            <input id="favPhrase" name="favPhrase" type="text" placeholder="Hello, world! 😊" />
+            <div class="note">Include punctuation like <code>!</code>, <code>?</code>, or an emoji.</div>
+          </div>
+
+          <!-- === ADDED FIELD: Landing Date (cannot be in the past) === -->
+          <div>
+            <label for="landingDate">Landing date (cannot be in the past)</label>
+            <input id="landingDate" name="landingDate" type="date" />
+          </div>
+
+          <!-- === ADDED: Creative extra field (Beacon Frequency) === -->
+          <div>
+            <label for="beaconFreq">Beacon Frequency (Hz) — optional</label>
+            <input id="beaconFreq" name="beaconFreq" type="text" inputmode="numeric" placeholder="1420" />
+            <div class="note">Use numeric frequency. Example: 1420 (21-cm hydrogen line)</div>
           </div>
 
           <div>
@@ -172,6 +214,26 @@
     const contactValue = document.getElementById('contactValue');
     const successBanner = document.getElementById('successBanner');
 
+    // small UX: enforce digits-only on crew input as-you-type
+    const crewInput = document.getElementById('crew');
+    crewInput.addEventListener('input', (e) => {
+      // strip any non-digit
+      const cleaned = e.target.value.replace(/\D+/g,'');
+      if (e.target.value !== cleaned) e.target.value = cleaned;
+    });
+
+    // also enforce digits-only on antennaCount & beaconFreq as you type
+    const antennaCountInput = document.getElementById('antennaCount');
+    antennaCountInput.addEventListener('input', (e) => {
+      const cleaned = e.target.value.replace(/\D+/g,'');
+      if (e.target.value !== cleaned) e.target.value = cleaned;
+    });
+    const beaconFreqInput = document.getElementById('beaconFreq');
+    beaconFreqInput.addEventListener('input', (e) => {
+      const cleaned = e.target.value.replace(/\D+/g,'');
+      if (e.target.value !== cleaned) e.target.value = cleaned;
+    });
+
     // contact type handling — alienified placeholders
     contactType.addEventListener('change', ()=>{
       const val = contactType.value;
@@ -226,39 +288,143 @@
 
     // validation helpers
     function isValidEmail(v){
-      // basic email pattern (keeps it simple but effective)
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
     }
     function isValidPhone(v){
-      // allow alien prefixes but require at least 4 visible chars; allow +, digits, letters, -, space
       return /^[\+\w][\w\-\s]{3,}$/.test(v);
     }
     function isPositiveInteger(v){
       return /^\d+$/.test(v) && parseInt(v,10) > 0;
     }
 
+    // new field-specific regex rules (added + original)
+    const rxName = /^[A-Za-zÀ-ÖØ-öø-ÿ'\- ]{2,}$/; // letters, spaces, hyphen, apostrophe (supports accents)
+    const rxShip = /^[A-Za-z0-9 '\-]{2,}$/; // ship: alnum, space, hyphen, apostrophe
+    const rxReg  = /^[A-Za-z0-9\-]{2,}$/; // registry id: alnum + hyphen
+    const rxRegion = /^[A-Za-z0-9,\- ()]{2,}$/; // region: allow commas, parens, spaces
+
+    // === ADDED REGEX / CHECKS ===
+    // Planet name must contain at least one digit and at least one vowel (simple intersection)
+    // allow letters, digits, spaces, hyphen (min 2 chars)
+    const rxPlanetComplex = /^(?=.{2,}$)(?=.*\d)(?=.*[AEIOUaeiou])[A-Za-z0-9 \-]+$/;
+
+    // Antenna count must be a positive even integer (no leading spaces)
+    // We'll validate numerically as well as via regex for digit-only
+    const rxDigitsOnly = /^\d+$/;
+
+    // Alien ID strict pattern: 3 uppercase letters - 2 uppercase letters _ 4 digits @UFO
+    const rxAlienId = /^[A-Z]{3}-[A-Z]{2}_[0-9]{4}@UFO$/;
+
+    // Favorite human phrase must include punctuation or an emoji.
+    // Use Unicode property escapes: \p{P} = punctuation, \p{Emoji} may be supported in modern engines.
+    // Use a combined check with the 'u' flag. Fallback: punctuation as minimal requirement.
+    const rxEmojiOrPunct = /(\p{P}|\p{Emoji})/u;
+
+    // Landing date: we'll compare to today's date and disallow dates strictly before today.
+    function isDateNotPast(dateStr){
+      if(!dateStr) return false;
+      const chosen = new Date(dateStr);
+      const now = new Date();
+      // normalize both to yyyy-mm-dd midnight to compare only date part
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const chosenDate = new Date(chosen.getFullYear(), chosen.getMonth(), chosen.getDate());
+      return chosenDate >= today;
+    }
+
     // enhanced validation
     function validate(fd){
-      if(!fd.get('fullname') || !fd.get('fullname').trim()) return 'Full name required.';
-      if(!fd.get('contactType')) return 'Please choose a contact method.';
-      if(contactType.value !== ''){
-        const cv = (fd.get('contactValue') || '').trim();
-        if(!cv) return 'Please provide the contact detail.';
-        if(contactType.value === 'email' && !isValidEmail(cv)) return 'Please provide a valid email (e.g. commander@alienism.space).';
-        if(contactType.value === 'phone' && !isValidPhone(cv)) return 'Please provide a valid contact (e.g. +ALIEN-0000 or +123456).';
+      // fullname
+      const fn = (fd.get('fullname')||'').trim();
+      if(!fn) return 'Full name required.';
+      if(!rxName.test(fn)) return 'Full name should contain only letters, spaces, hyphen or apostrophe (min 2 chars).';
+
+      // contact
+      const ct = fd.get('contactType') || '';
+      if(!ct) return 'Please choose a contact method.';
+      const cv = (fd.get('contactValue')||'').trim();
+      if(ct && !cv) return 'Please provide the contact detail.';
+      if(ct === 'email' && !isValidEmail(cv)) return 'Please provide a valid email (e.g. commander@alienism.space).';
+      if(ct === 'phone' && !isValidPhone(cv)) return 'Please provide a valid contact (e.g. +ALIEN-0000 or +123456).';
+
+      // planet
+      const pl = fd.get('planet') || '';
+      if(!pl) return 'Planet of origin required.';
+      if(pl === 'Other'){
+        const op = (fd.get('otherPlanet')||'').trim();
+        if(!op) return 'Please specify planet.';
+        if(op.length < 2) return 'Planet name too short.';
       }
-      if(!fd.get('planet')) return 'Planet of origin required.';
-      if(planet.value === 'Other' && (!fd.get('otherPlanet') || !fd.get('otherPlanet').trim())) return 'Please specify planet.';
-      if(!fd.get('purpose')) return 'Purpose required.';
-      if(purpose.value === 'Other' && (!fd.get('intent') || !fd.get('intent').trim())) return 'Please describe your purpose in the message.';
-      if(!fd.get('reg') || !fd.get('reg').trim()) return 'Ship registry ID required.';
+
+      // new: planetNameComplex (if provided) must contain digit + vowel
+      const pComplex = (fd.get('planetNameComplex')||'').trim();
+      if(pComplex){
+        if(!rxPlanetComplex.test(pComplex)) return 'Planet name must be 2+ chars, contain at least one digit and one vowel (A/E/I/O/U).';
+      }
+
+      // region: optional but if provided must be reasonable
+      const rg = (fd.get('region')||'').trim();
+      if(rg && !rxRegion.test(rg)) return 'Region should use letters, numbers, commas or parentheses only.';
+
+      // purpose
+      const ps = fd.get('purpose') || '';
+      if(!ps) return 'Purpose required.';
+      if(ps === 'Other'){
+        const it = (fd.get('intent')||'').trim();
+        if(!it) return 'Please describe your purpose in the message.';
+        if(it.length < 6) return 'Purpose description should be at least 6 characters.';
+      }
+
+      // ship
+      const ship = (fd.get('ship')||'').trim();
+      if(ship && !rxShip.test(ship)) return 'Ship name may include letters, numbers, spaces, hyphen (2+ chars).';
+
+      // registry
+      const reg = (fd.get('reg')||'').trim();
+      if(!reg) return 'Ship registry ID required.';
+      if(!rxReg.test(reg)) return 'Registry ID should be alphanumeric, may include hyphens (2+ chars).';
+
+      // crew: optional but if present must be positive integer > 0
+      const crewVal = (fd.get('crew')||'').trim();
+      if(crewVal && !isPositiveInteger(crewVal)) return 'Crew size must be a positive whole number.';
+
+      // === Antenna count validation (even numbers only) ===
+      const antenna = (fd.get('antennaCount')||'').trim();
+      if(antenna){
+        if(!rxDigitsOnly.test(antenna)) return 'Antenna count must be numeric.';
+        const n = parseInt(antenna, 10);
+        if(n <= 0) return 'Antenna count must be positive.';
+        if(n % 2 !== 0) return 'Antenna count must be an even number.';
+      }
+
+      // === Alien ID validation ===
+      const aid = (fd.get('alienId')||'').trim();
+      if(aid){
+        if(!rxAlienId.test(aid)) return 'Alien ID must match format: ZOR-XY_9999@UFO (uppercase exact).';
+      } else {
+        return 'Alien ID required.';
+      }
+
+      // === Favorite human phrase (emoji or punctuation) ===
+      const phrase = (fd.get('favPhrase')||'').trim();
+      if(!phrase) return 'Favorite human phrase required.';
+      try {
+        if(!rxEmojiOrPunct.test(phrase)) return 'Phrase must include punctuation (e.g. . , ! ?) or an emoji.';
+      } catch(e){
+        // fallback for older engines: require punctuation only
+        if(!/[\p{P}]/u.test(phrase)) return 'Phrase must include punctuation (e.g. . , ! ?) or an emoji.';
+      }
+
+      // === Landing date validation (cannot be in the past) ===
+      const landing = (fd.get('landingDate')||'').trim();
+      if(!landing) return 'Please provide a landing date.';
+      if(!isDateNotPast(landing)) return 'Landing date cannot be in the past.';
+
+      // Beacon frequency: optional but numeric if present
+      const bf = (fd.get('beaconFreq')||'').trim();
+      if(bf && !rxDigitsOnly.test(bf)) return 'Beacon frequency must be numeric (Hz).';
 
       // photo must be uploaded
       if(!photo || !photo.files || photo.files.length === 0) return 'Please upload a photo of the ship/identity.';
-
-      // crew must be positive integer if provided
-      const crewVal = (fd.get('crew') || '').trim();
-      if(crewVal && !isPositiveInteger(crewVal)) return 'Crew size must be a positive whole number.';
 
       return '';
     }
